@@ -13,7 +13,7 @@ function binarySearch(keyword, list) {
             return middle;
         }
     }
-    return -1
+    return -1;
 }
 
 function getBadKeywords() {
@@ -54,19 +54,22 @@ function findKeywords(text, badKeywords) {
     return keywords;
 }
 
-function addLinkNode(stockData, node, wordArr) {
-    wordArr.arr.push(stockData[0]);
+function addLinkNode(stockData, node) {
+    const link = 'https://finance.yahoo.com/quote/' + stockData[1];
     let newLink = document.createElement('a');
     let linkText = document.createTextNode(stockData[0] + ' ');
     newLink.appendChild(linkText);
-    newLink.title = 'StockView Link';
-    newLink.style.color = 'inherit';
+    newLink.title = 'stockview';
     newLink.target = '_blank';
-    newLink.style.borderBottomStyle = 'none';
-    newLink.style.textDecoration = 'none';
-    newLink.href = 'https://finance.yahoo.com/quote/' + stockData[1] + '?p='
-                    + stockData[1];
-    node.parentNode.insertBefore(newLink, node);
+    newLink.href = link;
+    style_list = ['fontFamily', 'color', 'fontWeight', 'borderBottomStyle',
+                  'textDecoration', 'fontWeight'];
+    for (let style = 0; style < style_list.length; ++style) {
+        newLink.style[style_list[style]] = 'inherit';
+    }
+    if (true) {
+        node.parentNode.insertBefore(newLink, node);
+    }
 }
 
 function breakUpTextNode(text, keyword, node) {
@@ -75,17 +78,17 @@ function breakUpTextNode(text, keyword, node) {
     for (let i = splitText.length; i-->1;) {
         splitText.splice(i, 0, keyword);
     }
-    if (splitText[0].length) {
+    if (splitText[0].length && node) {
         let newText = document.createTextNode(splitText[0]);
-        node.parentNode.insertBefore(newText, node)
+        if (true) {
+            node.parentNode.insertBefore(newText, node)
+        }
     }
-    splitText.shift();
-    splitText.shift();
+    splitText = splitText.splice(2, splitText.length);
     return splitText.join('');
-
 }
 
-async function replaceWordsWithLinks(elements, wordArr) {
+async function replaceWordsWithLinks(elements) {
     let badKeywords = await getBadKeywords();
     badKeywords = badKeywords['list'];
     for (let i = 0; i < elements.length; i++) {
@@ -97,19 +100,15 @@ async function replaceWordsWithLinks(elements, wordArr) {
                 let potentialKeywords = findKeywords(text, badKeywords);
                 for (let k = 0; k < potentialKeywords.length; ++k) {
                     let potentialKeyword = potentialKeywords[k];
-                    try {
-                        let jsonData = await getStockJSON(potentialKeyword)
-                        jsonData = jsonData['ResultSet']['Result'][0];
-                        if (jsonData) {
-                            let stockData = await [potentialKeyword, jsonData['symbol'].replace('-USD.SW',''), jsonData['exchDisp']];
-                            text = breakUpTextNode(text, stockData[0], node);
-                            addLinkNode(stockData, node, wordArr);
-                            node.parentNode.replaceChild(document.createTextNode(text), node);
-                        }
-                    } catch (error) {
-                        if (error != 'TypeError: Cannot read property \'insertBefore\' of null')
-                        console.log('Error with ' + potentialKeyword + '-'
-                                    + error);
+                    let jsonData = await getStockJSON(potentialKeyword)
+                    jsonData = jsonData['ResultSet']['Result'][0];
+                    if (jsonData && node.parentNode) {
+                        let stockData = await [potentialKeyword,
+                            jsonData['symbol'].replace('-USD.SW',''),
+                            jsonData['exchDisp']];
+                        text = breakUpTextNode(text, stockData[0], node);
+                        addLinkNode(stockData, node);
+                        node.parentNode.replaceChild(document.createTextNode(text), node);
                     }
                 }
             }
@@ -117,7 +116,5 @@ async function replaceWordsWithLinks(elements, wordArr) {
     }
 }
 
-let elements = document.querySelectorAll('P,B');
-let wordArr = {arr:[]};
-replaceWordsWithLinks(elements, wordArr);
-console.log(wordArr);
+let elements = document.querySelectorAll('P, B, I');
+replaceWordsWithLinks(elements);
