@@ -18,7 +18,7 @@ function binarySearch(keyword, list) {
 
 function getBadKeywords() {
     return Promise.resolve($.ajax({
-        url: 'https://api.myjson.com/bins/d1bru'
+        url: 'https://api.myjson.com/bins/6p9zc'
     }));
 }
 
